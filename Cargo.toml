@@ -28,7 +28,7 @@ vsdb = { version = "4.0", default-features = false }
 
 tendermint = { version = "0.40", optional = true }
 tendermint-config = { version = "0.40", optional = true }
-toml_edit = { version = "0.22.22", optional = true }
+toml_edit = { version = "0.25.11", optional = true }
 
 [features]
 default = [ "beacon_based" ]
