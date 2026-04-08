@@ -15,7 +15,7 @@ license = "GPL-3.0"
 features = [ "beacon_based" ]
 
 [dependencies]
-nix = { version = "0.29", features = [ "net", "process", "user", "hostname" ] }
+nix = { version = "0.31", features = [ "net", "process", "user", "hostname" ] }
 rand = "0.8.5"
 parking_lot = "0.12.3"
 
