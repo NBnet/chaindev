@@ -21,7 +21,7 @@ parking_lot = "0.12.3"
 
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
-serde_yml = "0.0.12"
+serde_yml = "0.0.13"
 
 ruc = { version = "8.0", features = [ "cmd", "ssh" ] }
 vsdb = { version = "4.0", default-features = false }
