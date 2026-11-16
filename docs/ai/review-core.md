@@ -80,10 +80,10 @@ the variable is unset. No default URL.
 `/tmp/__CHAIN_DEV__/beacon_based/<suffix>/<host>+<user>` unless
 `RUNTIME_CHAIN_DEV_BASE_DIR` is set. Tendermint uses
 `/tmp/__CHAIN_DEV__/tendermint_based/<suffix>/<host>/<user>`. Local mode
-appends `/__DEV__`; distributed mode appends `/__D_DEV__`. The READMEs
-under `src/beacon_based/` and `src/tendermint_based/` describe a different
-`/__chain_dev__/...` layout; treat the code as the source of truth and
-report a doc change that would send an operator to the wrong tree.
+appends `/__DEV__`; distributed mode appends `/__D_DEV__`. The stack
+READMEs describe this layout. Report a doc change that would send an
+operator to a different tree, including any revival of the old
+`/__chain_dev__/` paths.
 
 ### 3.2 Boundary Conditions
 

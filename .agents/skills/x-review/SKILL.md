@@ -93,9 +93,9 @@ refute it with `false-positive-guide.md`; keep only concrete evidence.
 - Doc-code alignment: `AGENTS.md`, root `README.md`,
   `src/beacon_based/README.md`, `src/tendermint_based/README.md`,
   `docs/ai/review-core.md`, this skill's full-audit table, and
-  `docs/ai/patterns/`. Code paths under `/tmp/__CHAIN_DEV__/` win over
-  the README layout when they disagree; report the drift when a change
-  touches either side.
+  `docs/ai/patterns/`. Those READMEs describe `/tmp/__CHAIN_DEV__/`.
+  Report any edit that puts homes back under `/__chain_dev__/` or
+  restores a default `CHAIN_DEV_EGG_REPO` URL.
 
 ### 5. Unsafe Code Audit
 

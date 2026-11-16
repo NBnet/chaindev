@@ -1,23 +1,10 @@
-# CHANGE LOG
+# Changelog
 
-#### v0.3x.x ~ v0.4x.x
+Current release: **0.54.3**. Older notes below 0.50 were incomplete and described defaults the code no longer has. Use `git log` for the commit history.
 
-- Add beacon(ETH2) based supports
+## 0.54
 
-#### v0.20.x
-
-- Support double addresses
-  - A local address
-  - An optional external address
-
-#### v0.13.x
-
-- Mark all ENVs as `protected` by default
-  - `Destroy` / `DestroyAll` / `KickNode` is not allowed for a `protected` ENV
-  - `Unprotect` operation is designed to remove the `protected` mark
-
-......
-
-......
-
-......
+- Beacon genesis clones `$CHAIN_DEV_EGG_REPO` and fails when it is unset. There is no built-in clone URL.
+- Env data lives under `/tmp/__CHAIN_DEV__/<beacon_based|tendermint_based>/...`, or under `$RUNTIME_CHAIN_DEV_BASE_DIR` when that is set. Local mode uses `__DEV__`. Distributed mode uses `__D_DEV__`. See the READMEs under `src/beacon_based/` and `src/tendermint_based/`.
+- New envs are protected. `Destroy`, `DestroyAll`, and `KickNode` require `Unprotect` or `force`.
+- The crate is edition 2024 (Rust 1.85 or newer). The Tendermint stack remains optional and less maintained.

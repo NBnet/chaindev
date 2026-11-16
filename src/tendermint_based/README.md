@@ -1,25 +1,24 @@
-# Tendermint based blockchain development
+# Tendermint cluster management
 
-> **NOTE:**    
-> Compared to the beacon side, this module is less maintained, some features may be outdated.
+Local (`dev`) and multi-host (`ddev`) helpers for Tendermint/CometBFT clusters. Enable with `--features tendermint_based`. This stack is less maintained than `beacon_based`. New beacon features are not automatically mirrored here.
 
-Utils for the managements of local and distributed tendermint clusters
+The optional Rust dependency is `tendermint` 0.40 (plus `tendermint-config`). Do not assume a particular `tendermint-core` git branch from this crate alone.
 
-Supported versions of [`tendermint-core`](https://github.com/tendermint/tendermint):
-- branch `master`: v0.34.24
+Protection, port release, and destroy ordering follow the same rules as the beacon stack. Genesis is generated in-process. This stack does not clone `$CHAIN_DEV_EGG_REPO`.
 
-Assume your project id(name) is `$PROJECT`,
+## Data root
 
-the `dev` meta path will be:
-- `/__chain_dev__/tendermint_based/${PROJECT}/${HOST}/${USER}/__dev__`
+Unless `RUNTIME_CHAIN_DEV_BASE_DIR` is set, the root is:
 
-the `ddev` meta path will be:
-- `/__chain_dev__/tendermint_based/${PROJECT}/${HOST}/${USER}/__d_dev__`
+```text
+/tmp/__CHAIN_DEV__/tendermint_based/<suffix>/<hostname>/<user>
+```
 
-If the `$PROJECT` is not set(empty value),
+`<suffix>` is the compile-time value of `STATIC_CHAIN_DEV_BASE_DIR_SUFFIX`, or empty. Unlike the beacon root, the hostname and the user name are separate path components.
 
-the `dev` meta path will be:
-- `/__chain_dev__/tendermint_based/${HOST}/${USER}/__dev__`
+| Mode | Home of env `<name>` | Port cache |
+|------|----------------------|------------|
+| local `dev` | `<root>/__DEV__/envs/<name>` | `<root>/__DEV__/ports_cache` |
+| distributed `ddev` | `<root>/__D_DEV__/envs/<name>` | `<root>/__D_DEV__/ports_cache` |
 
-the `ddev` meta path will be:
-- `/__chain_dev__/tendermint_based/${HOST}/${USER}/__d_dev__`
+Each env is created protected. `Destroy`, `DestroyAll`, and `KickNode` fail until `Unprotect`, unless the call passes `force`.
