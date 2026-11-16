@@ -12,6 +12,8 @@
 
 *(none)*
 
+> Rechecked after the ruc 11 / vsdb 17 / nix 0.32 / rand 0.10 bump. No open or deferred findings.
+
 ## Resolved — Overhaul (2026-11-16)
 
 ### [HIGH] tendermint: start treated one live process as a partial beacon failure
@@ -22,7 +24,7 @@
 ### [MEDIUM] build: `ruc::cmd::exec_output` is denied
 - **Where**: beacon and tendermint `dev` / `ddev`
 - **What**: `#![deny(warnings)]` rejects the deprecated `exec_output`. The crate did not compile.
-- **Resolution**: Call `cmd::exec`. In ruc 8.1 it is the same function. Also drop the extra parentheses on `Box<dyn RucError>` in the Tendermint port error type.
+- **Resolution**: Call `cmd::exec`. ruc 11.0.3 no longer has `exec_output`. Also drop the extra parentheses on `Box<dyn RucError>` in the Tendermint port error type.
 
 Protected envs, `fork` child exit, port caches, and the unset `$CHAIN_DEV_EGG_REPO` were re-checked and left unchanged.
 
