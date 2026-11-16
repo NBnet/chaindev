@@ -1,0 +1,6 @@
+interface:
+  display_name: "chaindev Deep Regression Review"
+  short_description: "Review chaindev cluster safety and maintain the audit registry"
+
+policy:
+  allow_implicit_invocation: false
