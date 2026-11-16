@@ -482,7 +482,7 @@ where
         let mut cfg = fs::read_to_string(&cfg_path)
             .c(d!())
             .or_else(|_| {
-                cmd::exec_output(&format!(
+                cmd::exec(&format!(
                     "chmod +x {0} && {0} init --home {1}",
                     &self.meta.tendermint_bin, &home
                 ))
@@ -725,7 +725,7 @@ where
                 })
         };
 
-        cmd::exec_output(&format!(
+        cmd::exec(&format!(
             "chmod +x {0} && {0} init --home {1}",
             &self.meta.tendermint_bin, &tmp_home
         ))
@@ -818,7 +818,7 @@ where
             &self.meta.home,
             datetime!()
         );
-        info_omit!(cmd::exec_output(&cmd), "No changes but try to commit?");
+        info_omit!(cmd::exec(&cmd), "No changes but try to commit?");
         Ok(())
     }
 }
@@ -842,28 +842,16 @@ impl<P: NodePorts> Node<P> {
         S: NodeCmdGenerator<Node<P>, EnvMeta<C, Node<P>>>,
     {
         let cmd = env.node_cmdline_generator.cmd_cnt_running(self, &env.meta);
-        let process_cnt = cmd::exec_output(&cmd)
-            .c(d!(&cmd))?
-            .trim()
-            .parse::<u64>()
-            .c(d!())?;
+        let process_cnt = cmd::exec(&cmd).c(d!(&cmd))?.trim().parse::<u64>().c(d!())?;
 
+        // A Tendermint node is one process. The beacon "3 processes means
+        // healthy, fewer means restart" rule kills a live node here.
         if 0 < process_cnt {
-            if 2 < process_cnt {
-                // At least 3 processes is running, 'el'/'cl_bn'/'cl_vc'
-                return Err(eg!(
-                    "This node(ID {}) may be running, {} processes detected.",
-                    self.id,
-                    process_cnt
-                ));
-            } else {
-                println!(
-                    "This node(ID {}) may be in a partial failed state, less than 3 live processes({}) detected, enter the restart process.",
-                    self.id, process_cnt
-                );
-                // Probably a partial failure
-                self.stop(env, false).c(d!())?;
-            }
+            return Err(eg!(
+                "This node(ID {}) may be running, {} processes detected.",
+                self.id,
+                process_cnt
+            ));
         }
 
         match unsafe { unistd::fork() } {
@@ -886,7 +874,7 @@ impl<P: NodePorts> Node<P> {
         let cmd = env
             .node_cmdline_generator
             .cmd_for_stop(self, &env.meta, force);
-        let outputs = cmd::exec_output(&cmd).c(d!(&cmd))?;
+        let outputs = cmd::exec(&cmd).c(d!(&cmd))?;
         let contents = format!("{}\n{}", &cmd, outputs.as_str());
         self.write_dev_log(&contents).c(d!())
     }

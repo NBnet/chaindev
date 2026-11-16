@@ -1131,7 +1131,7 @@ where
             })
         };
 
-        cmd::exec_output(&format!(
+        cmd::exec(&format!(
             "chmod +x {0} && {0} init --home {1}",
             &self.meta.tendermint_bin, &tmp_home
         ))
@@ -1237,7 +1237,7 @@ where
             &self.meta.home,
             datetime!()
         );
-        info_omit!(cmd::exec_output(&cmd), "No changes but try to commit?");
+        info_omit!(cmd::exec(&cmd), "No changes but try to commit?");
         Ok(())
     }
 
@@ -1376,25 +1376,15 @@ impl<P: NodePorts> Node<P> {
             .trim()
             .parse::<u64>()
             .c(d!())?;
+        // A Tendermint node is one process. Do not treat a count below 3
+        // as a partial beacon failure and stop it.
         if 0 < process_cnt {
-            if 2 < process_cnt {
-                // At least 3 processes is running, 'el'/'cl_bn'/'cl_vc'
-                return Err(eg!(
-                    "This node(ID {}, HOST {}) may be running, {} processes detected.",
-                    self.id,
-                    self.host.host_id(),
-                    process_cnt
-                ));
-            } else {
-                println!(
-                    "This node(ID {}, HOST {}) may be in a partial failed state, less than 3 live processes({}) detected, enter the restart process.",
-                    self.id,
-                    self.host.host_id(),
-                    process_cnt
-                );
-                // Probably a partial failure
-                self.stop(env, false).c(d!())?;
-            }
+            return Err(eg!(
+                "This node(ID {}, HOST {}) may be running, {} processes detected.",
+                self.id,
+                self.host.host_id(),
+                process_cnt
+            ));
         }
 
         let cmd = env.node_cmdline_generator.cmd_for_start(self, &env.meta);

@@ -391,7 +391,7 @@ where
                 "#,
                 env.meta.home, env.meta.name
             );
-            cmd::exec_output(&cmd).c(d!())
+            cmd::exec(&cmd).c(d!())
         })?;
 
         let id = env.next_node_id();
@@ -621,11 +621,8 @@ where
 
         for n in self.meta.nodes.values().chain(self.meta.fuhrers.values()) {
             let cmd = self.node_cmdline_generator.cmd_cnt_running(n, &self.meta);
-            let process_cnt = cmd::exec_output(&cmd)
-                .c(d!(&cmd))?
-                .trim()
-                .parse::<u64>()
-                .c(d!())?;
+            let process_cnt =
+                cmd::exec(&cmd).c(d!(&cmd))?.trim().parse::<u64>().c(d!())?;
             if 3 > process_cnt {
                 failed_cases.push(n.id);
             }
@@ -757,7 +754,7 @@ where
             let repo_url = env::var("CHAIN_DEV_EGG_REPO")
                 .c(d!("The env var $CHAIN_DEV_EGG_REPO not set!"))?;
             let gitcmd = format!("git clone {repo_url} {repo} || exit 1");
-            cmd::exec_output(&gitcmd).c(d!())?;
+            cmd::exec(&gitcmd).c(d!())?;
 
             if !self.meta.genesis_pre_settings.is_empty() {
                 fs::read(&self.meta.genesis_pre_settings)
@@ -788,7 +785,7 @@ where
                 self.meta.block_itv, self.meta.home,
             );
 
-            cmd::exec_output(&cmd).c(d!())?;
+            cmd::exec(&cmd).c(d!())?;
 
             self.meta.block_itv = fs::read_to_string(block_itv_cache)
                 .c(d!())
@@ -854,7 +851,7 @@ where
 
             fs::write(&genesis, &self.meta.genesis)
                 .c(d!())
-                .and_then(|_| cmd::exec_output(&cmd).c(d!()))?;
+                .and_then(|_| cmd::exec(&cmd).c(d!()))?;
 
             let yml =
                 format!("{}/{NODE_HOME_GENESIS_DIR_DST}/config.yaml", self.meta.home);
@@ -899,7 +896,7 @@ where
             "cd {} && git add {NODE_HOME_GENESIS_DIR_DST_PUBLIC}",
             self.meta.home
         );
-        cmd::exec_output(&cmd).c(d!()).map(|_| ())
+        cmd::exec(&cmd).c(d!()).map(|_| ())
     }
 
     // Apply genesis to node[s]:
@@ -986,7 +983,7 @@ where
             &self.meta.home,
             datetime!()
         );
-        info_omit!(cmd::exec_output(&cmd), "No changes but try to commit?");
+        info_omit!(cmd::exec(&cmd), "No changes but try to commit?");
         Ok(())
     }
 }
@@ -1011,11 +1008,7 @@ impl<Ports: NodePorts> Node<Ports> {
         Cmds: NodeCmdGenerator<Node<Ports>, EnvMeta<Data, Node<Ports>>>,
     {
         let cmd = env.node_cmdline_generator.cmd_cnt_running(self, &env.meta);
-        let process_cnt = cmd::exec_output(&cmd)
-            .c(d!(&cmd))?
-            .trim()
-            .parse::<u64>()
-            .c(d!())?;
+        let process_cnt = cmd::exec(&cmd).c(d!(&cmd))?.trim().parse::<u64>().c(d!())?;
 
         if 0 < process_cnt {
             if 2 < process_cnt {
@@ -1055,7 +1048,7 @@ impl<Ports: NodePorts> Node<Ports> {
         let cmd = env
             .node_cmdline_generator
             .cmd_for_stop(self, &env.meta, force);
-        let outputs = cmd::exec_output(&cmd).c(d!(&cmd))?;
+        let outputs = cmd::exec(&cmd).c(d!(&cmd))?;
         let contents = format!("{}\n{}", &cmd, outputs.as_str());
         self.write_dev_log(&contents).c(d!())
     }

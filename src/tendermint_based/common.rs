@@ -122,7 +122,7 @@ impl fmt::Display for BlockItv {
 }
 
 impl FromStr for BlockItv {
-    type Err = Box<(dyn ruc::RucError)>;
+    type Err = Box<dyn ruc::RucError>;
     fn from_str(s: &str) -> Result<Self> {
         s.parse::<u16>()
             .map(Self::Int)

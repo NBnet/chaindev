@@ -523,7 +523,7 @@ where
                 "#,
                 env.meta.home, env.meta.name
             );
-            cmd::exec_output(&cmd).c(d!())
+            cmd::exec(&cmd).c(d!())
         })?;
 
         // Use chunks to avoid resource overload
@@ -1302,7 +1302,7 @@ where
             let repo_url = env::var("CHAIN_DEV_EGG_REPO")
                 .c(d!("The env var $CHAIN_DEV_EGG_REPO not set!"))?;
             let gitcmd = format!("git clone {repo_url} {repo} || exit 1");
-            cmd::exec_output(&gitcmd).c(d!())?;
+            cmd::exec(&gitcmd).c(d!())?;
 
             if !self.meta.genesis_pre_settings.is_empty() {
                 fs::read(&self.meta.genesis_pre_settings)
@@ -1333,7 +1333,7 @@ where
                 self.meta.block_itv, self.meta.home,
             );
 
-            cmd::exec_output(&cmd).c(d!())?;
+            cmd::exec(&cmd).c(d!())?;
 
             self.meta.block_itv = fs::read_to_string(block_itv_cache)
                 .c(d!())
@@ -1398,7 +1398,7 @@ where
             );
             fs::write(&genesis, &self.meta.genesis)
                 .c(d!())
-                .and_then(|_| cmd::exec_output(&cmd).c(d!()))?;
+                .and_then(|_| cmd::exec(&cmd).c(d!()))?;
 
             let yml =
                 format!("{}/{NODE_HOME_GENESIS_DIR_DST}/config.yaml", self.meta.home);
@@ -1443,7 +1443,7 @@ where
             "cd {} && git add {NODE_HOME_GENESIS_DIR_DST_PUBLIC}",
             self.meta.home
         );
-        cmd::exec_output(&cmd).c(d!()).map(|_| ())
+        cmd::exec(&cmd).c(d!()).map(|_| ())
     }
 
     fn apply_genesis(&self, ids: Option<&[NodeID]>) -> Result<()> {
@@ -1731,7 +1731,7 @@ where
             &self.meta.home,
             datetime!()
         );
-        info_omit!(cmd::exec_output(&cmd), "No changes but try to commit?");
+        info_omit!(cmd::exec(&cmd), "No changes but try to commit?");
         Ok(())
     }
 }

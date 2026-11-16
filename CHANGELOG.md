@@ -2,6 +2,11 @@
 
 Current release: **0.54.3**. Older notes below 0.50 were incomplete and described defaults the code no longer has. Use `git log` for the commit history.
 
+## 0.54.4
+
+- Tendermint `start` no longer restarts a node that already has one live process. That check was copied from the beacon stack, which expects three processes.
+- Command execution uses `ruc::cmd::exec`. `exec_output` is deprecated and failed the `deny(warnings)` build.
+
 ## 0.54
 
 - Beacon genesis clones `$CHAIN_DEV_EGG_REPO` and fails when it is unset. There is no built-in clone URL.
