@@ -26,7 +26,7 @@ use vsdb::MapxOrd;
 pub use super::common::*;
 
 static GLOBAL_BASE_DIR: LazyLock<String> =
-    LazyLock::new(|| format!("{}/__DEV__", &*BASE_DIR));
+    LazyLock::new(|| format!("{}/__DEV__", *BASE_DIR));
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
@@ -260,7 +260,7 @@ where
     pub fn get_env_list() -> Result<Vec<EnvName>> {
         let mut list = vec![];
 
-        let data_dir = format!("{}/envs", &*GLOBAL_BASE_DIR);
+        let data_dir = format!("{}/envs", *GLOBAL_BASE_DIR);
         fs::create_dir_all(&data_dir).c(d!())?;
 
         for entry in fs::read_dir(&data_dir).c(d!())? {
@@ -283,7 +283,7 @@ where
     where
         Cmds: NodeCmdGenerator<Node<Ports>, EnvMeta<Data, Node<Ports>>>,
     {
-        let p = format!("{}/envs/{}/CONFIG", &*GLOBAL_BASE_DIR, cfg_name);
+        let p = format!("{}/envs/{}/CONFIG", *GLOBAL_BASE_DIR, cfg_name);
         match fs::read_to_string(p) {
             Ok(d) => Ok(serde_json::from_str(&d).c(d!())?),
             Err(e) => match e.kind() {
@@ -330,7 +330,7 @@ where
     where
         Ops: CustomOps,
     {
-        let home = format!("{}/envs/{}", &*GLOBAL_BASE_DIR, &cfg.name);
+        let home = format!("{}/envs/{}", *GLOBAL_BASE_DIR, cfg.name);
 
         if opts.force_create {
             if let Ok(mut env) = Env::<Data, Ports, Cmds>::load_env_by_cfg(cfg) {
@@ -658,7 +658,7 @@ where
         custom_data: Option<NodeCustomData>,
     ) -> Result<()> {
         // 1.
-        let home = format!("{}/{}", &self.meta.home, id);
+        let home = format!("{}/{}", self.meta.home, id);
         fs::create_dir_all(&home).c(d!())?;
 
         let ports = Self::alloc_ports(&kind).c(d!())?;
@@ -958,7 +958,7 @@ where
                     eprintln!("********************");
                     eprintln!(
                         "\x1b[01mHINTS: \x1b[33;01mENV({}) NOT FOUND\x1b[00m",
-                        &cfg.name
+                        cfg.name
                     );
                     eprintln!("********************");
                     Err(eg!("ENV({}) NOT FOUND", &cfg.name))
@@ -976,11 +976,11 @@ where
     #[inline(always)]
     pub fn write_cfg(&self) -> Result<()> {
         let cfg = serde_json::to_vec_pretty(self).c(d!())?;
-        fs::write(format!("{}/CONFIG", &self.meta.home), &cfg).c(d!())?;
+        fs::write(format!("{}/CONFIG", self.meta.home), &cfg).c(d!())?;
 
         let cmd = format!(
             "cd {} && git add CONFIG && git commit -m '{}'",
-            &self.meta.home,
+            self.meta.home,
             datetime!()
         );
         info_omit!(cmd::exec(&cmd), "No changes but try to commit?");
@@ -1049,7 +1049,7 @@ impl<Ports: NodePorts> Node<Ports> {
             .node_cmdline_generator
             .cmd_for_stop(self, &env.meta, force);
         let outputs = cmd::exec(&cmd).c(d!(&cmd))?;
-        let contents = format!("{}\n{}", &cmd, outputs.as_str());
+        let contents = format!("{}\n{}", cmd, outputs.as_str());
         self.write_dev_log(&contents).c(d!())
     }
 
@@ -1072,10 +1072,9 @@ impl<Ports: NodePorts> Node<Ports> {
     fn write_dev_log(&self, cmd: &str) -> Result<()> {
         OpenOptions::new()
             .read(true)
-            .write(true)
             .append(true)
             .create(true)
-            .open(format!("{}/{MGMT_OPS_LOG}", &self.home))
+            .open(format!("{}/{MGMT_OPS_LOG}", self.home))
             .c(d!())
             .and_then(|mut f| {
                 f.write_all(format!("\n\n[ {} ]\n", datetime!()).as_bytes())
@@ -1241,7 +1240,7 @@ impl PortsCache {
     }
 
     fn file_path() -> String {
-        format!("{}/ports_cache", &*GLOBAL_BASE_DIR)
+        format!("{}/ports_cache", *GLOBAL_BASE_DIR)
     }
 
     fn load() -> Result<Self> {

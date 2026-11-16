@@ -28,7 +28,7 @@ impl Default for EnvName {
 
 impl fmt::Display for EnvName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", &self.name)
+        write!(f, "{}", self.name)
     }
 }
 

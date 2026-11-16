@@ -152,7 +152,7 @@ fn default_ssh_sk_path() -> Option<PathBuf> {
     static SSH_SECKEYS: LazyLock<PathBuf> = LazyLock::new(|| {
         let home = env::var("HOME").expect("$HOME not defined!");
 
-        let ed25519_key_path = PathBuf::from(format!("{}/.ssh/id_ed25519", &home));
+        let ed25519_key_path = PathBuf::from(format!("{}/.ssh/id_ed25519", home));
         let rsa_key_path = PathBuf::from(home + "{}/.ssh/id_rsa");
 
         if ed25519_key_path.exists() {

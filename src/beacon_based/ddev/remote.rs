@@ -150,7 +150,7 @@ where
                         (
                             n.host.clone(),
                             *f,
-                            format!("{}/{}", &n.home, f),
+                            format!("{}/{}", n.home, f),
                             format!("N{}_{}_{}", n.id, n.kind, f.replace('/', "_")),
                         )
                     })
@@ -247,7 +247,7 @@ where
                         (
                             n.host.clone(),
                             *path,
-                            format!("{}/{}", &n.home, path),
+                            format!("{}/{}", n.home, path),
                             format!(
                                 "N{}_{}_{}.tgz",
                                 n.id,
@@ -259,12 +259,12 @@ where
                 })
                 .map(|(host, relative_path, remote_path, tgz_name)| {
                     let tgzcmd =
-                        format!("cd /tmp && tar -zcf {} {}", &tgz_name, &remote_path);
+                        format!("cd /tmp && tar -zcf {} {}", tgz_name, remote_path);
                     let remote_tgz_path = format!("/tmp/{}", tgz_name);
                     let local_path = format!(
                         "{}/{}.{{{}}}",
                         local_base_dir,
-                        &tgz_name,
+                        tgz_name,
                         host.addr.connection_addr()
                     );
                     s.spawn(move || {

@@ -34,7 +34,7 @@ pub use super::common::*;
 use crate::common::NodeCmdGenerator;
 
 static GLOBAL_BASE_DIR: LazyLock<String> =
-    LazyLock::new(|| format!("{}/__DEV__", &*BASE_DIR));
+    LazyLock::new(|| format!("{}/__DEV__", *BASE_DIR));
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
@@ -159,7 +159,7 @@ where
     pub fn get_env_list() -> Result<Vec<EnvName>> {
         let mut list = vec![];
 
-        let data_dir = format!("{}/envs", &*GLOBAL_BASE_DIR);
+        let data_dir = format!("{}/envs", *GLOBAL_BASE_DIR);
         fs::create_dir_all(&data_dir).c(d!())?;
 
         for entry in fs::read_dir(&data_dir).c(d!())? {
@@ -180,7 +180,7 @@ where
     where
         S: NodeCmdGenerator<Node<P>, EnvMeta<C, Node<P>>>,
     {
-        let p = format!("{}/envs/{}/CONFIG", &*GLOBAL_BASE_DIR, cfg_name);
+        let p = format!("{}/envs/{}/CONFIG", *GLOBAL_BASE_DIR, cfg_name);
         match fs::read_to_string(p) {
             Ok(d) => Ok(serde_json::from_str(&d).c(d!())?),
             Err(e) => match e.kind() {
@@ -226,7 +226,7 @@ where
         A: fmt::Debug + Clone + Serialize + for<'a> Deserialize<'a>,
         U: CustomOps,
     {
-        let home = format!("{}/envs/{}", &*GLOBAL_BASE_DIR, &cfg.name);
+        let home = format!("{}/envs/{}", *GLOBAL_BASE_DIR, cfg.name);
 
         if opts.force_create {
             if let Ok(env) = Env::<C, P, S>::load_env_by_cfg(cfg) {
@@ -478,13 +478,13 @@ where
         let home = format!("{}/{}", self.meta.home, id);
         fs::create_dir_all(&home).c(d!())?;
 
-        let cfg_path = format!("{}/config/config.toml", &home);
+        let cfg_path = format!("{}/config/config.toml", home);
         let mut cfg = fs::read_to_string(&cfg_path)
             .c(d!())
             .or_else(|_| {
                 cmd::exec(&format!(
                     "chmod +x {0} && {0} init --home {1}",
-                    &self.meta.tendermint_bin, &home
+                    self.meta.tendermint_bin, home
                 ))
                 .c(d!())
                 .and_then(|_| fs::read_to_string(&cfg_path).c(d!()))
@@ -493,13 +493,13 @@ where
 
         cfg["proxy_app"] = toml_value(format!(
             "tcp://{}:{}",
-            &self.meta.host_ip,
+            self.meta.host_ip,
             ports.get_sys_abci()
         ));
 
         cfg["rpc"]["laddr"] = toml_value(format!(
             "tcp://{}:{}",
-            &self.meta.host_ip,
+            self.meta.host_ip,
             ports.get_sys_rpc()
         ));
 
@@ -523,7 +523,7 @@ where
         cfg["p2p"]["max_packet_msg_payload_size"] = toml_value(MB);
         cfg["p2p"]["laddr"] = toml_value(format!(
             "tcp://{}:{}",
-            &self.meta.host_ip,
+            self.meta.host_ip,
             ports.get_sys_p2p()
         ));
 
@@ -559,7 +559,7 @@ where
 
         cfg["mempool"]["ttl-num-blocks"] = toml_value(16);
 
-        cfg["moniker"] = toml_value(format!("{}-{}", &self.meta.name, id));
+        cfg["moniker"] = toml_value(format!("{}-{}", self.meta.name, id));
 
         cfg["p2p"]["max_num_inbound_peers"] = toml_value(400);
         cfg["p2p"]["max_num_outbound_peers"] = toml_value(100);
@@ -581,7 +581,7 @@ where
                 .node_id()
                 .to_string()
                 .to_lowercase(),
-            home: format!("{}/{}", &self.meta.home, id),
+            home: format!("{}/{}", self.meta.home, id),
             kind,
             ports,
         };
@@ -631,7 +631,7 @@ where
 
     fn update_peer_cfg(&self) -> Result<()> {
         for n in self.meta.nodes.values().chain(self.meta.fuhrers.values()) {
-            let cfg_path = format!("{}/config/config.toml", &n.home);
+            let cfg_path = format!("{}/config/config.toml", n.home);
             let mut cfg = fs::read_to_string(&cfg_path)
                 .c(d!())
                 .and_then(|c| c.parse::<Document>().c(d!()))?;
@@ -644,8 +644,8 @@ where
                     .map(|n| {
                         format!(
                             "{}@{}:{}",
-                            &n.tm_id,
-                            &self.meta.host_ip,
+                            n.tm_id,
+                            self.meta.host_ip,
                             n.ports.get_sys_p2p()
                         )
                     })
@@ -672,14 +672,14 @@ where
         A: fmt::Debug + Clone + Serialize + for<'a> Deserialize<'a>,
     {
         let tmp_id = NodeID::MAX;
-        let tmp_home = format!("{}/{}", &self.meta.home, tmp_id);
+        let tmp_home = format!("{}/{}", self.meta.home, tmp_id);
 
         let genit = |genesis_file: String| {
             self.meta
                 .nodes
                 .values()
                 .map(|n| {
-                    TmConfig::load_toml_file(&format!("{}/config/config.toml", &n.home))
+                    TmConfig::load_toml_file(&format!("{}/config/config.toml", n.home))
                         .map_err(|e| eg!(e))
                         .and_then(|cfg| {
                             cfg.priv_validator_key_file
@@ -727,11 +727,11 @@ where
 
         cmd::exec(&format!(
             "chmod +x {0} && {0} init --home {1}",
-            &self.meta.tendermint_bin, &tmp_home
+            self.meta.tendermint_bin, tmp_home
         ))
         .c(d!())
         .and_then(|_| {
-            TmConfig::load_toml_file(&format!("{}/config/config.toml", &tmp_home))
+            TmConfig::load_toml_file(&format!("{}/config/config.toml", tmp_home))
                 .map_err(|e| eg!(e))
         })
         .and_then(|cfg| cfg.genesis_file.to_str().map(|f| f.to_owned()).c(d!()))
@@ -757,7 +757,7 @@ where
                 .or_else(|| self.meta.fuhrers.get(n))
                 .c(d!())
                 .and_then(|n| {
-                    TmConfig::load_toml_file(&format!("{}/config/config.toml", &n.home))
+                    TmConfig::load_toml_file(&format!("{}/config/config.toml", n.home))
                         .map_err(|e| eg!(e))
                         .and_then(|cfg| {
                             PathBuf::from_str(&n.home)
@@ -811,11 +811,11 @@ where
     #[inline(always)]
     pub fn write_cfg(&self) -> Result<()> {
         let cfg = serde_json::to_vec_pretty(self).c(d!())?;
-        fs::write(format!("{}/CONFIG", &self.meta.home), &cfg).c(d!())?;
+        fs::write(format!("{}/CONFIG", self.meta.home), &cfg).c(d!())?;
 
         let cmd = format!(
             "cd {} && git add CONFIG && git commit -m '{}'",
-            &self.meta.home,
+            self.meta.home,
             datetime!()
         );
         info_omit!(cmd::exec(&cmd), "No changes but try to commit?");
@@ -875,17 +875,16 @@ impl<P: NodePorts> Node<P> {
             .node_cmdline_generator
             .cmd_for_stop(self, &env.meta, force);
         let outputs = cmd::exec(&cmd).c(d!(&cmd))?;
-        let contents = format!("{}\n{}", &cmd, outputs.as_str());
+        let contents = format!("{}\n{}", cmd, outputs.as_str());
         self.write_dev_log(&contents).c(d!())
     }
 
     fn write_dev_log(&self, cmd: &str) -> Result<()> {
         OpenOptions::new()
             .read(true)
-            .write(true)
             .append(true)
             .create(true)
-            .open(format!("{}/mgmt.log", &self.home))
+            .open(format!("{}/mgmt.log", self.home))
             .c(d!())
             .and_then(|mut f| {
                 f.write_all(format!("\n\n[ {} ]\n", datetime!()).as_bytes())
@@ -1038,7 +1037,7 @@ impl PortsCache {
     }
 
     fn file_path() -> String {
-        format!("{}/ports_cache", &*GLOBAL_BASE_DIR)
+        format!("{}/ports_cache", *GLOBAL_BASE_DIR)
     }
 
     fn load() -> Result<Self> {

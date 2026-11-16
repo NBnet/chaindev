@@ -26,7 +26,7 @@ use vsdb::MapxOrd;
 pub use super::common::*;
 
 static GLOBAL_BASE_DIR: LazyLock<String> =
-    LazyLock::new(|| format!("{}/__D_DEV__", &*BASE_DIR));
+    LazyLock::new(|| format!("{}/__D_DEV__", *BASE_DIR));
 
 static OCCUPIED_PORTS: LazyLock<RwLock<BTreeMap<HostID, BTreeSet<u16>>>> =
     LazyLock::new(|| RwLock::new(BTreeMap::new()));
@@ -344,7 +344,7 @@ where
     pub fn get_env_list() -> Result<Vec<EnvName>> {
         let mut list = vec![];
 
-        let data_dir = format!("{}/envs", &*GLOBAL_BASE_DIR);
+        let data_dir = format!("{}/envs", *GLOBAL_BASE_DIR);
         fs::create_dir_all(&data_dir).c(d!())?;
 
         for entry in fs::read_dir(&data_dir).c(d!())? {
@@ -365,7 +365,7 @@ where
     where
         S: NodeCmdGenerator<Node<P>, EnvMeta<C, Node<P>>>,
     {
-        let p = format!("{}/envs/{}/CONFIG", &*GLOBAL_BASE_DIR, cfg_name);
+        let p = format!("{}/envs/{}/CONFIG", *GLOBAL_BASE_DIR, cfg_name);
         match fs::read(p) {
             Ok(d) => Ok(serde_json::from_slice(&d).c(d!())?),
             Err(e) => match e.kind() {
@@ -409,7 +409,7 @@ where
     where
         U: CustomOps,
     {
-        let home = format!("{}/envs/{}", &*GLOBAL_BASE_DIR, &cfg.name);
+        let home = format!("{}/envs/{}", *GLOBAL_BASE_DIR, cfg.name);
 
         if opts.force_create {
             if let Ok(mut env) = Env::<C, P, S>::load_env_by_cfg(cfg) {
@@ -428,7 +428,7 @@ where
                         hosts
                             .iter()
                             .map(|h| {
-                                let cmd = format!("rm -rf {}", &home);
+                                let cmd = format!("rm -rf {}", home);
                                 s.spawn(move || {
                                     let remote = Remote::from(*h);
                                     info!(remote.exec_cmd(&cmd), &h.meta.addr)
@@ -457,7 +457,7 @@ where
                     hosts
                         .iter()
                         .map(|h| {
-                            let cmd = format!(r"\ls {}/*", &home);
+                            let cmd = format!(r"\ls {}/*", home);
                             s.spawn(move || Remote::from(*h).exec_cmd(&cmd))
                         })
                         .collect::<Vec<_>>()
@@ -541,7 +541,7 @@ where
                     .iter()
                     .map(|h| {
                         let remote = Remote::from(*h);
-                        let cmd = format!("mkdir -p {}", &env.meta.home);
+                        let cmd = format!("mkdir -p {}", env.meta.home);
                         s.spawn(move || remote.exec_cmd(&cmd).c(d!(&h.meta.addr)))
                     })
                     .collect::<Vec<_>>()
@@ -626,7 +626,7 @@ where
                     .iter()
                     .map(|h| {
                         let remote = Remote::from(*h);
-                        let cmd = format!("rm -rf {}", &self.meta.home);
+                        let cmd = format!("rm -rf {}", self.meta.home);
                         s.spawn(move || remote.exec_cmd(&cmd).c(d!(&h.meta.addr)))
                     })
                     .collect::<Vec<_>>()
@@ -738,7 +738,7 @@ where
                         })
                         .collect::<Vec<_>>()
                 })?;
-            seq.sort_by(|a, b| a.1.cmp(&b.1));
+            seq.sort_by_key(|a| a.1);
             seq.into_iter()
                 .find(|h| h.0.host_id() != old_node.host.host_id())
                 .c(d!("no avaliable hosts left, migrate failed"))
@@ -1238,7 +1238,7 @@ where
                             Remote::from(&host)
                                 .exec_cmd(&format!(
                                     "mkdir -p {0} && touch {0}/{MGMT_OPS_LOG}",
-                                    &home
+                                    home
                                 ))
                                 .c(d!())
                                 .map(|_| Node {
@@ -1519,7 +1519,7 @@ where
                     eprintln!("********************");
                     eprintln!(
                         "\x1b[01mHINTS: \x1b[33;01mENV({}) NOT FOUND\x1b[00m",
-                        &cfg.name
+                        cfg.name
                     );
                     eprintln!("********************");
                     Err(eg!("ENV({}) NOT FOUND", &cfg.name))
@@ -1585,7 +1585,7 @@ where
                         )
                     })
                     .collect::<Vec<_>>();
-                seq.sort_by(|a, b| a.1.cmp(&b.1));
+                seq.sort_by_key(|a| a.1);
                 seq.into_iter().next().c(d!()).map(|h| h.0)?
             }
         };
@@ -1627,7 +1627,7 @@ where
         let reserved_ports = P::reserved();
         let reserved = reserved_ports
             .iter()
-            .map(|p| format!("{},{}", &host.addr, p))
+            .map(|p| format!("{},{}", host.addr, p))
             .collect::<Vec<_>>();
         let remote = Remote::from(host);
 
@@ -1657,7 +1657,7 @@ where
             let mut cnter = 5000;
             while reserved.len() > res.len() {
                 let p = 10000 + random::<u16>() % (65535 - 21111);
-                let hp = format!("{},{}", &host.addr, p);
+                let hp = format!("{},{}", host.addr, p);
                 if !res.contains(&p)
                     && !reserved_ports.contains(&p)
                     && !PC.read().contains(&hp)
@@ -1672,7 +1672,7 @@ where
 
         let mut r = res
             .iter()
-            .map(|p| format!("{},{}", &host.addr, p))
+            .map(|p| format!("{},{}", host.addr, p))
             .collect::<Vec<_>>();
         let old_len = r.len();
         r.sort();
@@ -1724,11 +1724,11 @@ where
     #[inline(always)]
     pub fn write_cfg(&self) -> Result<()> {
         let cfg = serde_json::to_vec_pretty(self).c(d!())?;
-        fs::write(format!("{}/CONFIG", &self.meta.home), &cfg).c(d!())?;
+        fs::write(format!("{}/CONFIG", self.meta.home), &cfg).c(d!())?;
 
         let cmd = format!(
             "cd {} && git add CONFIG && git commit -m '{}'",
-            &self.meta.home,
+            self.meta.home,
             datetime!()
         );
         info_omit!(cmd::exec(&cmd), "No changes but try to commit?");
@@ -1786,7 +1786,7 @@ impl<P: NodePorts> Node<P> {
 
         let cmd = env.node_cmdline_generator.cmd_for_start(self, &env.meta);
         let outputs = Remote::from(&self.host).exec_cmd(&cmd).c(d!(cmd))?;
-        let log = format!("{}\n{}", &cmd, outputs.as_str());
+        let log = format!("{}\n{}", cmd, outputs.as_str());
         self.write_dev_log(&log).c(d!())
     }
 
@@ -1799,13 +1799,13 @@ impl<P: NodePorts> Node<P> {
             .node_cmdline_generator
             .cmd_for_stop(self, &env.meta, force);
         let outputs = Remote::from(&self.host).exec_cmd(&cmd).c(d!())?;
-        let log = format!("{}\n{}", &cmd, outputs.as_str());
+        let log = format!("{}\n{}", cmd, outputs.as_str());
         self.write_dev_log(&log).c(d!())
     }
 
     fn write_dev_log(&self, log: &str) -> Result<()> {
-        let log = format!("\n\n[ {} ]\n{}: {}", datetime!(), &self.host.addr, log);
-        let logfile = format!("{}/{MGMT_OPS_LOG}", &self.home);
+        let log = format!("\n\n[ {} ]\n{}: {}", datetime!(), self.host.addr, log);
+        let logfile = format!("{}/{MGMT_OPS_LOG}", self.home);
         Remote::from(&self.host)
             .append_file(logfile, log.as_bytes())
             .c(d!())
@@ -1819,7 +1819,7 @@ impl<P: NodePorts> Node<P> {
 
         // Remove all related files
         Remote::from(&self.host)
-            .exec_cmd(&format!("rm -rf {}", &self.home))
+            .exec_cmd(&format!("rm -rf {}", self.home))
             .c(d!())
             .map(|_| ())
     }
@@ -1827,7 +1827,7 @@ impl<P: NodePorts> Node<P> {
     #[inline(always)]
     fn drop_ports(&self) {
         for port in self.ports.get_port_list().iter() {
-            PC.write().remove(&format!("{},{}", &self.host.addr, port));
+            PC.write().remove(&format!("{},{}", self.host.addr, port));
         }
     }
 
@@ -1975,10 +1975,10 @@ struct PortsCache {
 
 impl PortsCache {
     fn load_or_create() -> Result<Self> {
-        let dir = format!("{}/ports_cache", &*GLOBAL_BASE_DIR);
+        let dir = format!("{}/ports_cache", *GLOBAL_BASE_DIR);
         fs::create_dir_all(&dir).c(d!())?;
 
-        let meta_path = format!("{}/meta.json", &dir);
+        let meta_path = format!("{}/meta.json", dir);
 
         let ret = match fs::read(&meta_path) {
             Ok(c) => serde_json::from_slice(&c).c(d!())?,

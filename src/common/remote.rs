@@ -65,10 +65,10 @@ impl Remote<'_> {
         let local_base_dir = local_base_dir.unwrap_or("/tmp");
 
         let tgz_name = generate_name_from_path(absolute_path);
-        let tgzcmd = format!("cd /tmp && tar -zcf {} {}", &tgz_name, absolute_path);
+        let tgzcmd = format!("cd /tmp && tar -zcf {} {}", tgz_name, absolute_path);
 
         self.exec_cmd(&tgzcmd).c(d!()).and_then(|_| {
-            let remote_tgz_path = format!("/tmp/{}", &tgz_name);
+            let remote_tgz_path = format!("/tmp/{}", tgz_name);
             let local_path = format!("{}/{}", local_base_dir, tgz_name);
             self.get_file(remote_tgz_path, &local_path)
                 .c(d!())
@@ -101,12 +101,9 @@ impl Remote<'_> {
     }
 
     pub fn file_is_dir<P: AsRef<str>>(&self, remote_path: P) -> Result<bool> {
-        self.exec_cmd(&format!(
-            r"\ls -ld {} | grep -o '^.'",
-            &remote_path.as_ref()
-        ))
-        .c(d!())
-        .map(|file_mark| "d" == file_mark.trim())
+        self.exec_cmd(&format!(r"\ls -ld {} | grep -o '^.'", remote_path.as_ref()))
+            .c(d!())
+            .map(|file_mark| "d" == file_mark.trim())
     }
 
     pub fn get_occupied_ports(&self) -> Result<BTreeSet<u16>> {
@@ -221,7 +218,7 @@ pub fn get_file_from_hosts(
                 .iter()
                 .map(|h| {
                     let local_path =
-                        format!("{}/{}_{}", local_base_dir, &h.meta.addr, remote_file);
+                        format!("{}/{}_{}", local_base_dir, h.meta.addr, remote_file);
                     s.spawn(move || {
                         let remote = Remote::from(*h);
                         remote
@@ -276,7 +273,7 @@ pub fn exec_cmds_on_hosts(
                             let remote = Remote::from(*h);
                             remote.exec_cmd(cmd).c(d!(&h.meta.addr)).map(|outputs| {
                                 let lk = LK.lock();
-                                println!("== HOST: {} ==\n{}", &h.meta.addr, outputs);
+                                println!("== HOST: {} ==\n{}", h.meta.addr, outputs);
                                 drop(lk);
                             })
                         })
@@ -320,7 +317,7 @@ pub fn exec_cmds_on_hosts(
                                             let lk = LK.lock();
                                             println!(
                                                 "== HOST: {} ==\n{}",
-                                                &h.meta.addr, outputs
+                                                h.meta.addr, outputs
                                             );
                                             drop(lk);
                                         },
