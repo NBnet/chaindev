@@ -15,20 +15,20 @@ license = "GPL-3.0"
 features = [ "beacon_based" ]
 
 [dependencies]
-nix = { version = "0.29", features = [ "net", "process", "user", "hostname" ] }
-rand = "0.8.5"
-parking_lot = "0.12.3"
+nix = { version = "0.32.0", features = [ "net", "process", "user", "hostname" ] }
+rand = "0.10.4"
+parking_lot = "0.13.0"
 
-serde = { version = "1.0", features = [ "derive" ] }
-serde_json = "1.0"
-serde_yml = "0.0.12"
+serde = { version = "1.0.229", features = [ "derive" ] }
+serde_json = "1.0.154"
+serde_yml = "0.0.13"
 
-ruc = { version = "8.0", features = [ "cmd", "ssh" ] }
-vsdb = { version = "4.0", default-features = false }
+ruc = { version = "11.0.3", features = [ "cmd", "ssh" ] }
+vsdb = "17.0.19"
 
-tendermint = { version = "0.40", optional = true }
-tendermint-config = { version = "0.40", optional = true }
-toml_edit = { version = "0.22.22", optional = true }
+tendermint = { version = "0.41.0", optional = true }
+tendermint-config = { version = "0.41.0", optional = true }
+toml_edit = { version = "0.25.19", optional = true }
 
 [features]
 default = [ "beacon_based" ]
@@ -42,11 +42,8 @@ tendermint_based = [
     "toml_edit"
 ]
 
-vsdb_prelude = [
-    "vsdb/parity_backend",
-    "vsdb/msgpack_codec",
-    "vsdb/compress"
-]
+# Kept as a feature gate. vsdb 17 has no parity/msgpack/compress features.
+vsdb_prelude = []
 
 [patch.crates-io]
 # ruc = { path = "../ruc" }

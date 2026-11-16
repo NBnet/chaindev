@@ -620,7 +620,9 @@ where
                     res.push(p);
                 }
                 cnter -= 1;
-                alt!(0 == cnter, return Err(eg!("ports can not be allocated")))
+                if 0 == cnter {
+                    return Err(eg!("ports can not be allocated"));
+                }
             }
         }
 

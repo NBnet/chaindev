@@ -10,7 +10,7 @@ use crate::common::{
     remote::{Remote, exec_cmds_on_hosts, get_file_from_hosts, put_file_to_hosts},
 };
 use parking_lot::RwLock;
-use rand::random;
+
 use ruc::{cmd, *};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -70,7 +70,11 @@ where
                 .c(d!())
                 .and_then(|mut env| {
                     env.push_nodes(
-                        alt!(*fullnode, NodeKind::FullNode, NodeKind::ArchiveNode),
+                        if *fullnode {
+                            NodeKind::FullNode
+                        } else {
+                            NodeKind::ArchiveNode
+                        },
                         Some(custom_data.clone()),
                         host.as_ref(),
                         *num,
@@ -466,7 +470,9 @@ where
                         .any(|ret| ret.is_ok())
                 });
 
-                alt!(exists, return true);
+                if exists {
+                    return true;
+                }
             }
             false
         };
@@ -1100,9 +1106,9 @@ where
         nodes.sort_unstable();
 
         for n in nodes.iter().rev().copied() {
-            self.stop(Some(&set! {B n}), false).c(d!())?;
+            self.stop(Some(&bset! {n}), false).c(d!())?;
             sleep_ms!(1000 * wait_itv_secs as u64);
-            self.start(Some(&set! {B n}), ignore_failed, realloc_ports)
+            self.start(Some(&bset! {n}), ignore_failed, realloc_ports)
                 .c(d!())?;
         }
 
@@ -1121,7 +1127,7 @@ where
     pub fn collect_failed_nodes(
         &self,
     ) -> (BTreeMap<HostID, Vec<NodeID>>, Vec<Box<dyn RucError>>) {
-        let mut failed_cases = map! {B};
+        let mut failed_cases = bmap! {};
         let mut errlist: Vec<Box<dyn RucError>> = vec![];
 
         for nodes in self
@@ -1656,7 +1662,7 @@ where
         } else {
             let mut cnter = 5000;
             while reserved.len() > res.len() {
-                let p = 10000 + random::<u16>() % (65535 - 21111);
+                let p = 10000 + rand::random::<u16>() % (65535 - 21111);
                 let hp = format!("{},{}", host.addr, p);
                 if !res.contains(&p)
                     && !reserved_ports.contains(&p)
@@ -1666,7 +1672,9 @@ where
                     res.push(p);
                 }
                 cnter -= 1;
-                alt!(0 == cnter, return Err(eg!("ports can not be allocated")))
+                if 0 == cnter {
+                    return Err(eg!("ports can not be allocated"));
+                }
             }
         }
 
@@ -2004,8 +2012,8 @@ impl PortsCache {
 
     fn set(&mut self, ports: &[String]) {
         for p in ports {
-            let v = self.port_set.insert(&p.to_owned(), &());
-            assert!(v.is_none(), "{}", p);
+            assert!(!self.port_set.contains_key(p), "{p}");
+            self.port_set.insert(p, &());
         }
     }
 

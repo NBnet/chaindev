@@ -9,7 +9,7 @@ use crate::common::{
     hosts::{HostExpression, HostExpressionRef, HostID, HostMeta, Hosts, Weight},
     remote::{Remote, exec_cmds_on_hosts, get_file_from_hosts, put_file_to_hosts},
 };
-use rand::random;
+
 use ruc::{cmd, *};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -1326,7 +1326,7 @@ where
         } else {
             let mut cnter = 10000;
             while reserved.len() > res.len() {
-                let p = 20000 + random::<u16>() % (65535 - 20000);
+                let p = 20000 + rand::random::<u16>() % (65535 - 20000);
                 let hp = format!("{},{}", host.addr, p);
                 if !res.contains(&p)
                     && !reserved_ports.contains(&p)
@@ -1336,7 +1336,9 @@ where
                     res.push(p);
                 }
                 cnter -= 1;
-                alt!(0 == cnter, return Err(eg!("ports can not be allocated")))
+                if 0 == cnter {
+                    return Err(eg!("ports can not be allocated"));
+                }
             }
         }
 
@@ -1586,7 +1588,8 @@ struct PortsCache {
 impl PortsCache {
     fn load_or_create() -> Result<Self> {
         let vbd = format!("{}/ports_cache", *GLOBAL_BASE_DIR);
-        vsdb::vsdb_set_base_dir(&vbd).c(d!())?;
+        vsdb::vsdb_configure(vsdb::VsdbOptions::new(&vbd))
+            .map_err(|e| eg!(e.to_string()))?;
 
         let meta_path = format!("{}/meta.json", vbd);
 
@@ -1615,11 +1618,9 @@ impl PortsCache {
 
     fn set(&self, ports: &[String]) {
         for p in ports {
-            assert!(
-                unsafe { self.port_set.shadow() }
-                    .insert(&p.to_owned(), &())
-                    .is_none()
-            );
+            let mut ports = unsafe { self.port_set.shadow() };
+            assert!(!ports.contains_key(p), "{p}");
+            ports.insert(p, &());
         }
     }
 

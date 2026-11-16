@@ -47,7 +47,7 @@ impl fmt::Display for HostAddr {
             f,
             "{}{}{}",
             self.local_ip,
-            alt!(self.ext_ip.is_some(), "|", ""),
+            if self.ext_ip.is_some() { "|" } else { "" },
             self.ext_ip.as_deref().unwrap_or_default()
         )
     }
@@ -496,11 +496,11 @@ pub fn param_parse_hosts(hosts: HostExpressionRef) -> Result<HostMap> {
                                 addr,
                                 ssh_user: h[1].to_owned(),
                                 ssh_port: p,
-                                ssh_sk_path: alt!(
-                                    5 == h.len(),
-                                    PathBuf::from(h[4]),
+                                ssh_sk_path: if 5 == h.len() {
+                                    PathBuf::from(h[4])
+                                } else {
                                     default_ssh_sk_path.clone()
-                                ),
+                                },
                             },
                             weight: w as Weight,
                             node_cnt: 0,

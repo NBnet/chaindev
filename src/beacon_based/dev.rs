@@ -71,11 +71,11 @@ where
                     for i in 1..=*num {
                         let id = env
                             .push_node(
-                                alt!(
-                                    *fullnode,
-                                    NodeKind::FullNode,
-                                    NodeKind::ArchiveNode,
-                                ),
+                                if *fullnode {
+                                    NodeKind::FullNode
+                                } else {
+                                    NodeKind::ArchiveNode
+                                },
                                 Some(custom_data.clone()),
                             )
                             .c(d!())?;
@@ -706,7 +706,9 @@ where
                     res.push(p);
                 }
                 cnter -= 1;
-                alt!(0 == cnter, return Err(eg!("ports can not be allocated")))
+                if 0 == cnter {
+                    return Err(eg!("ports can not be allocated"));
+                }
             }
         }
 
