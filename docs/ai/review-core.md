@@ -56,10 +56,12 @@ may destroy an existing env, and that call passes `force = true` on purpose.
 stop is logged and cleanup still proceeds only where the existing code
 already uses `info_omit!` on stop. Do not skip port release.
 
-**Ports.** Reserved ports are refused. The cache file is
-`<GLOBAL_BASE_DIR>/ports_cache`. A port taken by a node is recorded before
-the process starts and removed in `clean`. `ddev` updates the vsdb port set
-through `shadow()`; the parent map and the shadow must not disagree.
+**Ports.** Reserved ports are refused. Local mode stores a JSON file at
+`<GLOBAL_BASE_DIR>/ports_cache`. Distributed mode creates that path as a
+directory (`meta.json` plus a vsdb map). A port taken by a node is recorded
+before the process starts and removed in beacon `clean_up` or Tendermint
+`clean`. `ddev` updates the vsdb port set through `shadow()`; the parent
+map and the shadow must not disagree.
 
 **Process spawn.** `fork` is `unsafe`. The child writes a log line, runs
 `exec_spawn`, and `exit`s. The parent returns `Ok(())` without running
@@ -88,8 +90,11 @@ operator to a different tree, including any revival of the old
 ### 3.2 Boundary Conditions
 
 - Protected env, `force = false` and `force = true`.
-- `DestroyAll` when one env is protected and another is not.
-- `KickNode` with `None` (last ordinary node) and with an unknown id.
+- Tendermint `DestroyAll` when one env is protected and another is not.
+  Local mode fails the protected env unless `force` is set. Distributed
+  mode skips it even when `force` is set. Beacon has no `DestroyAll`.
+- Beacon `KickNodes` and Tendermint `KickNode`, with `None` (last ordinary
+  node) and with an unknown id.
 - `force_create` over an existing home.
 - Zero initial validators; only a fuhrer.
 - Port already in the cache; port in the reserved list; cache file missing.

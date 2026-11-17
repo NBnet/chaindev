@@ -16,7 +16,9 @@ and the matching methods under both `ddev/` modules.
 **Impact**: A default env, which is created protected, is deleted or loses
 a node.
 **Check**: The guard returns `Err` with the "unprotect it first" message
-before `stop` or `clean`. `DestroyAll` applies the flag to every env.
+before `stop` or `clean`. Beacon has no `DestroyAll`. Tendermint local
+`DestroyAll` passes `force` into each env. Tendermint ddev `DestroyAll`
+skips a protected env and does not treat `force` as an override.
 `protect` and `unprotect` call `write_cfg`.
 
 ### 1.2 `force_create` Deletes Without the Destroy Path

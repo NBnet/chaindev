@@ -1,17 +1,16 @@
-[![Rust](https://github.com/rust-util-collections/chaindev/actions/workflows/rust.yml/badge.svg)](https://github.com/rust-util-collections/chaindev/actions/workflows/rust.yml)
+[![Rust](https://github.com/NBnet/chaindev/actions/workflows/rust.yml/badge.svg)](https://github.com/NBnet/chaindev/actions/workflows/rust.yml)
 [![Latest Version](https://img.shields.io/crates/v/chaindev.svg)](https://crates.io/crates/chaindev)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/chaindev)
-![GitHub top language](https://img.shields.io/github/languages/top/rust-util-collections/chaindev)
-[![Minimum rustc version](https://img.shields.io/badge/rustc-1.85+-lightgray.svg)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)
+![GitHub top language](https://img.shields.io/github/languages/top/NBnet/chaindev)
 
 # chaindev
 
 Powerful development and testing utils for blockchain developers.
 
 - [Beacon(ETH2) based chains](src/beacon_based)
-    - `feature = [ "beacon_based" ]`, default
+    - Cargo feature `beacon_based`, the default
 - [Tendermint/CometBFT based chains](src/tendermint_based)
-    - `feature = [ "tendermint_based" ]`
+    - Cargo feature `tendermint_based` (`--features tendermint_based`)
     - **WARNING**: less maintained, new features may be missing!
 
 ### ENV VARs

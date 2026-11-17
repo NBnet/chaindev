@@ -51,7 +51,7 @@ parallel implementations, not a shared generic with two configs.
 ```bash
 make fmt          # cargo fmt
 make lint         # cargo clippy --all-features, then again with --tests
-make test         # cargo test -- --test-threads=1   (default features only)
+make test         # cargo test, then cargo test --release; both use default features and --test-threads=1
 ```
 
 The crate root is `#![deny(warnings)]`. Default features are
@@ -68,8 +68,11 @@ passes `--all-features`.
 - `unsafe` is limited to `unistd::fork` in both `dev.rs` files and
   `port_set.shadow()` in both `ddev` modules. A new `unsafe` block needs
   a `SAFETY` comment.
-- New envs are created `is_protected: true`. `Destroy`, `DestroyAll`, and
-  `KickNode` require `force` or a prior `Unprotect`.
+- New envs are created `is_protected: true`. Beacon public ops are
+  `Destroy` and `KickNodes` (no `DestroyAll`). Tendermint public ops are
+  `Destroy`, `KickNode`, and `DestroyAll`. Those refuse a protected env
+  unless `force` is set, except distributed Tendermint `DestroyAll`, which
+  skips a protected env and still returns success.
 - `$CHAIN_DEV_EGG_REPO` has no default. Do not reintroduce a hardcoded
   clone URL.
 - Public behavior changes must update the matching README under

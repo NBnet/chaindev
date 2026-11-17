@@ -2,7 +2,7 @@
 
 Local (`dev`) and multi-host (`ddev`) helpers for Tendermint/CometBFT clusters. Enable with `--features tendermint_based`. This stack is less maintained than `beacon_based`. New beacon features are not automatically mirrored here.
 
-The optional Rust dependency is `tendermint` 0.40 (plus `tendermint-config`). Do not assume a particular `tendermint-core` git branch from this crate alone.
+The optional Rust dependency is `tendermint` 0.41.0 (plus `tendermint-config` 0.41.0). Do not assume a particular `tendermint-core` git branch from this crate alone.
 
 Protection, port release, and destroy ordering follow the same rules as the beacon stack. Genesis is generated in-process. This stack does not clone `$CHAIN_DEV_EGG_REPO`.
 
@@ -21,4 +21,4 @@ Unless `RUNTIME_CHAIN_DEV_BASE_DIR` is set, the root is:
 | local `dev` | `<root>/__DEV__/envs/<name>` | `<root>/__DEV__/ports_cache` |
 | distributed `ddev` | `<root>/__D_DEV__/envs/<name>` | `<root>/__D_DEV__/ports_cache` |
 
-Each env is created protected. `Destroy`, `DestroyAll`, and `KickNode` fail until `Unprotect`, unless the call passes `force`.
+Each env is created protected. `Destroy` and `KickNode` fail until `Unprotect`, unless the call passes `force`. Local `DestroyAll` does the same. Distributed `DestroyAll` skips a protected env and returns success even when `force` is set.

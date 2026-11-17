@@ -17,7 +17,7 @@ Unless `RUNTIME_CHAIN_DEV_BASE_DIR` is set, the root is:
 | local `dev` | `<root>/__DEV__/envs/<name>` | `<root>/__DEV__/ports_cache` |
 | distributed `ddev` | `<root>/__D_DEV__/envs/<name>` | `<root>/__D_DEV__/ports_cache` |
 
-Each env is created protected. `Destroy`, `DestroyAll`, and `KickNode` fail until `Unprotect`, unless the call passes `force`.
+Each env is created protected. `Destroy` and `KickNodes` fail until `Unprotect`, unless the call passes `force`. This stack has no `DestroyAll`.
 
 ## Genesis
 

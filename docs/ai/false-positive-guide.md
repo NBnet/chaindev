@@ -30,8 +30,9 @@ ignored, when a protected env is destroyed with `force == false`, or when
 
 ## FP-4: Fuhrer Nodes Are Not Kicked
 
-**Pattern**: Reporting that `KickNode` cannot remove a fuhrer.
-**Rule**: Fuhrers are kept by design. `KickNode` only removes entries from
+**Pattern**: Reporting that beacon `KickNodes` or Tendermint `KickNode`
+cannot remove a fuhrer.
+**Rule**: Fuhrers are kept by design. Kick only removes entries from
 `meta.nodes`. Report it only if a fuhrer is removed, or if kicking the last
 ordinary node panics instead of returning an error.
 
@@ -77,7 +78,8 @@ crate root denies warnings. Focus on semantic bugs.
 ## FP-10: "Consider" Without a Concrete Downside
 
 **Pattern**: Advisory suggestions with no trigger.
-**Rule**: Every finding needs a concrete operation (`Destroy`, `KickNode`,
+**Rule**: Every finding needs a concrete operation (`Destroy`, beacon
+`KickNodes` or Tendermint `KickNode`,
 `Create`, migrate, remote exec) and a concrete bad outcome (protected data
 deleted, port reused, genesis cloned from the wrong URL, node left
 running).

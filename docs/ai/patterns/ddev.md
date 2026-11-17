@@ -7,7 +7,10 @@
 - `src/tendermint_based/ddev/remote.rs`
 
 ## Architecture
-- Same `Op` surface as local mode, but node homes and processes are placed
+- Not the same `Op` surface as local mode. Beacon ddev adds `MigrateNodes`,
+  `PushHosts`, `KickHosts`, and the `Host*` ops, and still has no
+  `DestroyAll`. Tendermint ddev adds `MigrateNode`, `PushHosts`,
+  `KickHost`, and the `Host*` ops. Node homes and processes are placed
   on records from the host map.
 - `GLOBAL_BASE_DIR` is `<BASE_DIR>/__D_DEV__`, so local and distributed
   port caches do not share a file.
@@ -18,8 +21,10 @@
 ## Critical Invariants
 
 ### INV-DD1: Same Protection Rules as Local Mode
-**Check**: `destroy`, `destroy_all`, and `kick_node` still refuse a
-protected env without `force`, on both stacks.
+**Check**: `destroy` and kick refuse a protected env without `force` on
+both stacks. Beacon has no `destroy_all`. Tendermint local `destroy_all`
+honors `force`. Tendermint ddev `destroy_all` skips a protected env and
+ignores `force`, then returns `Ok(())`.
 
 ### INV-DD2: Shadow Updates Match the Parent Set
 **Check**: Every `shadow()` insert or remove has the matching update on
